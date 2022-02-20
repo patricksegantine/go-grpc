@@ -23,9 +23,11 @@ func main() {
 	client := pb.NewUserServiceClient(connection)
 	//AddUser(client)
 	//AddUserVerbose(client)
-	AddUsers(client)
+	//AddUsers(client)
+	AddUserBothStream(client)
 }
 
+// AddUser implements a server call
 func AddUser(client pb.UserServiceClient) {
 	req := &pb.User{
 		Name:  "Patrick Segantine",
@@ -40,7 +42,7 @@ func AddUser(client pb.UserServiceClient) {
 	fmt.Println(res)
 }
 
-// AddUserVerbose server stream
+// AddUserVerbose invokes an server stream call
 func AddUserVerbose(client pb.UserServiceClient) {
 	req := &pb.User{}
 
@@ -61,26 +63,9 @@ func AddUserVerbose(client pb.UserServiceClient) {
 	}
 }
 
-// AddUsers implementa um client stream
+// AddUsers invokes an client to server stream call
 func AddUsers(client pb.UserServiceClient) {
-	req := []*pb.User{
-		{
-			Name:  "Patrick",
-			Email: "patrick@email.com",
-		},
-		{
-			Name:  "Raquel",
-			Email: "raquel@email.com",
-		},
-		{
-			Name:  "Antonella",
-			Email: "antonella@email.com",
-		},
-		{
-			Name:  "Gabriel",
-			Email: "biel@email.com",
-		},
-	}
+	req := fakeUsers()
 
 	stream, err := client.AddUsers(context.Background())
 	if err != nil {
@@ -100,10 +85,9 @@ func AddUsers(client pb.UserServiceClient) {
 	fmt.Println(res)
 }
 
+// AddUserBothStream invokes both server and client stream (bi-directional) call
 func AddUserBothStream(client pb.UserServiceClient) {
-	users := []*pb.User{
-		{},
-	}
+	users := fakeUsers()
 
 	stream, err := client.AddUsersBothStream(context.Background())
 	if err != nil {
@@ -131,10 +115,32 @@ func AddUserBothStream(client pb.UserServiceClient) {
 				log.Fatalf("Error receiving data: %v", err)
 				break
 			}
-			fmt.Printf("Recebendo user %v com status %v", res.GetUser(), res.GetStatus())
+			fmt.Printf("Recebendo user %v com status %v\n", res.GetUser(), res.GetStatus())
 		}
 		close(wait)
 	}()
 
 	<-wait
+}
+
+func fakeUsers() []*pb.User {
+	ret := []*pb.User{
+		{
+			Name:  "Patrick",
+			Email: "patrick@email.com",
+		},
+		{
+			Name:  "Raquel",
+			Email: "raquel@email.com",
+		},
+		{
+			Name:  "Antonella",
+			Email: "antonella@email.com",
+		},
+		{
+			Name:  "Gabriel",
+			Email: "biel@email.com",
+		},
+	}
+	return ret
 }

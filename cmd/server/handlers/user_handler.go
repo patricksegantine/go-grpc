@@ -17,13 +17,15 @@ type UserServiceImpl struct {
 	pb.UnimplementedUserServiceServer
 }
 
+// NewUserService build a new instance
 func NewUserService() *UserServiceImpl {
 	return &UserServiceImpl{}
 }
 
+// AddUser implemetns an unary request call
 func (*UserServiceImpl) AddUser(ctx context.Context, req *pb.User) (*pb.User, error) {
 	id := getID()
-	// Insert - Database
+
 	fmt.Printf("ID: %v | Name: %v\n", id, req.Name)
 
 	return &pb.User{
@@ -33,6 +35,7 @@ func (*UserServiceImpl) AddUser(ctx context.Context, req *pb.User) (*pb.User, er
 	}, nil
 }
 
+// AddUserVerbose implements a server stream call
 func (*UserServiceImpl) AddUserVerbose(req *pb.User, stream pb.UserService_AddUserVerboseServer) error {
 	stream.Send(&pb.UserResponse{
 		Status: "Init",
@@ -60,6 +63,7 @@ func (*UserServiceImpl) AddUserVerbose(req *pb.User, stream pb.UserService_AddUs
 	return nil
 }
 
+// AddUsers implements an client to server stream call
 func (*UserServiceImpl) AddUsers(stream pb.UserService_AddUsersServer) error {
 	users := []*pb.User{}
 
@@ -74,10 +78,12 @@ func (*UserServiceImpl) AddUsers(stream pb.UserService_AddUsersServer) error {
 			log.Fatalf("Error receiving stream: %v", err)
 		}
 
+		fmt.Println("Receiving", req.Name)
+
 		user := &pb.User{
 			Id:    getID(),
-			Name:  req.GetName(),
-			Email: req.GetEmail(),
+			Name:  req.Name,
+			Email: req.Email,
 		}
 		fmt.Println("Adding", user)
 
@@ -85,6 +91,7 @@ func (*UserServiceImpl) AddUsers(stream pb.UserService_AddUsersServer) error {
 	}
 }
 
+// AddUserBothStream implements both server and client stream (bi-directional) call
 func (*UserServiceImpl) AddUsersBothStream(stream pb.UserService_AddUsersBothStreamServer) error {
 	for {
 		req, err := stream.Recv()
