@@ -1,0 +1,26 @@
+package main
+
+import (
+	"log"
+	"net"
+
+	"github.com/patricksegantine/go-grpc/cmd/server/handlers"
+	"github.com/patricksegantine/go-grpc/pb"
+	"google.golang.org/grpc"
+)
+
+func main() {
+	lis, err := net.Listen("tcp", "localhost:50051")
+	if err != nil {
+		log.Fatalf("Could not connect: %v", err)
+	}
+
+	grpcServer := grpc.NewServer()
+	pb.RegisterUserServiceServer(grpcServer, handlers.NewUserService())
+
+	log.Printf("GRPC server listening on %v", lis.Addr())
+
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("Could not serve: %v", err)
+	}
+}
